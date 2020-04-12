@@ -1,6 +1,6 @@
 {
   "name": "food-delivery-server-goit",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -18,7 +18,9 @@
   },
   "homepage": "https://github.com/alexanderqwer/food-delivery-server-goit#readme",
   "dependencies": {
+    "bcrypt": "^4.0.1",
     "express": "^4.17.1",
+    "mongoose": "^5.9.7",
     "morgan": "^1.9.1",
     "nodemon": "^1.18.4",
     "shortid": "^2.2.15"

@@ -1,37 +1,30 @@
-const fs = require("fs");
-const path = require("path");
-const shortid = require("shortid");
+const bcrypt = require("bcrypt");
+const User = require("../../modules/db/schemas/user");
 
 const signUpRoute = (request, response) => {
-  const user = { ...request.body, id: shortid.generate() };
-  const filePath = path.join(__dirname, "../../db/users/all-users.json");
+  const body = request.body;
+  const hashedPassword = bcrypt.hashSync(body.password, 10);
+  const user = { ...body, password: hashedPassword };
 
-  if (!fs.existsSync(filePath)) {
-    fs.writeFile(filePath, `[${JSON.stringify(user)}]`, (err) => {
-      if (err) throw err;
-    });
-  } else {
-    const allUsers = JSON.parse(
-      fs.readFileSync(filePath, (error, data) => {
-        if (error) {
-          console.log(error);
-        }
-        return data;
-      })
-    );
-    allUsers.push(user);
-    fs.writeFile(filePath, JSON.stringify(allUsers), (err) => {
-      if (err) throw err;
-    });
-  }
+  const newUser = new User(user);
 
-  response.writeHead(200, { "Content-Type": "application/json" });
-  response.end(
-    JSON.stringify({
+  const sendResponse = (user) => {
+    console.log(user);
+
+    response.json({
       status: "success",
       user,
-    })
-  );
+    });
+  };
+
+  const sendError = () => {
+    response.status(400);
+    response.json({
+      error: "user was not saved",
+    });
+  };
+
+  newUser.save().then(sendResponse).catch(sendError);
 };
 
 module.exports = signUpRoute;
