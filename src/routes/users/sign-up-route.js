@@ -1,32 +1,37 @@
-// const qs = require('querystring');
 const fs = require("fs");
 const path = require("path");
+const shortid = require("shortid");
 
 const signUpRoute = (request, response) => {
-  if (request.method === "POST") {
-    request.on("data", data => {
-      const user = JSON.parse(data);
-      const filePath = path.join(__dirname, "../../db/users");
-      fs.writeFile(
-        `${filePath}/${user.username}.json`,
-        JSON.stringify(user),
-        err => {
-          if (err) throw err;
-        }
-      );
-      response.writeHead(200, { "Content-Type": "application/json" });
-      response.end(
-        JSON.stringify({
-          status: "success",
-          user
-        })
-      );
+  const user = { ...request.body, id: shortid.generate() };
+  const filePath = path.join(__dirname, "../../db/users/all-users.json");
+
+  if (!fs.existsSync(filePath)) {
+    fs.writeFile(filePath, `[${JSON.stringify(user)}]`, (err) => {
+      if (err) throw err;
     });
   } else {
-    response.writeHead(405, { "Content-Type": "text/html" });
-    response.write("<h1>SignUp other method</h1>");
-    response.end();
+    const allUsers = JSON.parse(
+      fs.readFileSync(filePath, (error, data) => {
+        if (error) {
+          console.log(error);
+        }
+        return data;
+      })
+    );
+    allUsers.push(user);
+    fs.writeFile(filePath, JSON.stringify(allUsers), (err) => {
+      if (err) throw err;
+    });
   }
+
+  response.writeHead(200, { "Content-Type": "application/json" });
+  response.end(
+    JSON.stringify({
+      status: "success",
+      user,
+    })
+  );
 };
 
 module.exports = signUpRoute;
