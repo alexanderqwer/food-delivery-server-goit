@@ -1,23 +1,19 @@
-const express = require("express");
-const app = express();
+const http = require("http");
+const url = require("url");
 const morgan = require("morgan");
 const router = require("./routes/router");
+const routeHandler = require("./helpers/get-route-handler");
 
-const errorHandler = (err, req, res, next) => {
-  res.status(500).send("Error found: " + err.stack);
-};
+const logger = morgan("combined");
 
 const startServer = (port) => {
-  app
-    .use(express.urlencoded({ extended: false }))
-    .use(express.json())
-    .use(morgan("dev"))
-    .use("/", router)
-    .use(errorHandler);
+  const server = http.createServer((request, response) => {
+    const parsedUrl = url.parse(request.url);
+    const func = routeHandler(router, parsedUrl);
+    logger(request, response, () => func(request, response));
+  });
 
-  app.listen(port);
-
-  console.log("Server was started at http://localhost:" + port);
+  server.listen(port);
 };
 
 module.exports = startServer;
